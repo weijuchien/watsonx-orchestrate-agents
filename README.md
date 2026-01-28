@@ -81,5 +81,35 @@ orchestrate env remove -n <environment-name>
 
 ---
 
-**Reference:** [Configure access to remote environments](https://developer.watson-orchestrate.ibm.com/environment/initiate_environment)
+## 3. Import and export agents to YAML
 
+Use the CLI to move agent definitions between your watsonx Orchestrate environment and local YAML files.
+
+### 3.1 Import an agent from YAML
+
+Import an agent definition from a YAML file into the active environment:
+
+```bash
+orchestrate agents import -f agent_yamls/main_agent.yaml
+```
+
+- `-f` / `--file`: Path to the agent YAML file (e.g. `agent_yamls/main_agent.yaml`).
+
+### 3.2 Export an agent to YAML
+
+Export an existing agent from the environment to a local YAML file:
+
+```bash
+orchestrate agents export -n "Main_Agent_4042hW" -k native --agent-only -o main_agent.yaml
+```
+
+- `-n` / `--name`: Agent name as shown in the Agents table in watsonx Orchestrate (e.g. `Main_Agent_4042hW`).
+- `-k native`: Export format; `native` uses the standard agent YAML structure.
+- `--agent-only`: Export only the agent definition (no extra assets).
+- `-o` / `--output`: Output file path (e.g. `main_agent.yaml`).
+
+To find an agent’s name or ID, use the Agents list in the watsonx Orchestrate UI or `orchestrate agents list` in the CLI.
+
+---
+
+**Reference:** [Configure access to remote environments](https://developer.watson-orchestrate.ibm.com/)
