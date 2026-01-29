@@ -9,3 +9,4 @@ exclude =
     build,
     dist,
     *.egg-info
+ignore = F841

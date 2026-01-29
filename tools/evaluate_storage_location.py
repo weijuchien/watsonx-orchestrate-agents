@@ -1,5 +1,6 @@
 from ibm_watsonx_orchestrate.agent_builder.tools import tool
 
+
 @tool
 def evaluate_storage_location(context: dict) -> dict:
     """
@@ -75,15 +76,26 @@ def evaluate_storage_location(context: dict) -> dict:
     # Default outputs
     is_approved = False
     location_matrix = []
+    approved_locations = []
 
     # Lookup policy
     policy = storage_policy_matrix.get(sensitivity, {}).get(external_key)
     if policy:
-        approved_list = policy.get("approved_locations", [])
-        location_matrix = approved_list
-        is_approved = current_location.lower() in [loc.lower() for loc in approved_list]
+        approved_locations = policy.get("approved_locations", [])
+        location_matrix = approved_locations
+        is_approved = current_location.lower() in [loc.lower() for loc in approved_locations]
+
+    message = (
+        f"The current storage location {current_location} is approved for the project."
+        if is_approved else
+        f"The current storage location {current_location} is not approved for the project. "
+        f"Please move the data to one of the approved locations (e.g., {approved_locations[0] if approved_locations else 'an approved location'}) before proceeding. "  # noqa: E501
+        f"If you need assistance selecting an appropriate approved location, let me know!"
+    )
 
     return {
         "is_approved": is_approved,
-        "location_matrix": location_matrix
+        "current_location": current_location,
+        "location_matrix": location_matrix,
+        "message": message
     }

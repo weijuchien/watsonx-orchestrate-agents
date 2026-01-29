@@ -62,11 +62,12 @@ instructions: |
     - Do NOT alter or enrich the payload beyond field mapping
 
   ------------------------------------------------------------------
+
   **STEP 3: OUTPUT HANDLING**
+
   Upon successful tool execution:
-    - Use ALL returned outputs verbatim
-    - Do NOT summarize, rephrase, or reinterpret results
-    - Clearly label outputs as indicative guidance
+  - Return tool output field `formatted_report` verbatim.
+  - Do NOT add any extra text before/after.
 
   ------------------------------------------------------------------
   **STEP 4: TICKET RULES**
