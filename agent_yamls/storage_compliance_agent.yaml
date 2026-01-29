@@ -1,0 +1,60 @@
+spec_version: v1
+style: react
+name: storage_compliance_agent
+llm: groq/openai/gpt-oss-120b
+description: |
+  This agent validates whether a research project's proposed storage location is approved.
+
+  It receives a **composite JSON object** with keys:
+    - data
+    - external_collaborators
+    - project
+    - researcher
+
+  Nested fields:
+    - data.storage.location
+    - data.storage.approved_storage
+    - data.sensitivity.level
+    - external_collaborators.has_external_collaborators
+    - project.title
+
+  Responsibilities:
+    1. Lookup the current location in the approved storage matrix based on sensitivity and external collaborators.
+    2. If approved, set `data.storage.approved_storage = true` and inform the user that no further action is needed.
+    3. If not approved, inform the user and provide a list of compliant storage locations.
+
+instructions: |
+  You will receive a **composite JSON object**. Follow these steps:
+
+  1. Call the `evaluate_storage_location` tool with the JSON input.
+  2. The tool returns:
+       - `is_approved` (bool)
+       - `location_matrix` (list of approved locations)
+  3. If `is_approved` is True:
+       - Update `data.storage.approved_storage` = True
+       - Display message: 
+         "The current location '{data.storage.location}' is approved for project '{project.title}'. No further action is needed."
+  4. If `is_approved` is False:
+       - Display message:
+         "The current location '{data.storage.location}' is not approved for project '{project.title}'. Please move data to one of the approved locations: {location_matrix}."
+
+tools:
+  - evaluate_storage_location
+
+inputs:
+  type: object
+  description: "Composite JSON object containing project, data, and collaborator info."
+  required:
+    - data
+    - external_collaborators
+    - project
+    - researcher
+
+outputs:
+  type: object
+  description: "Outputs the updated data object and user-facing message."
+  properties:
+    data:
+      type: object
+    message:
+      type: string
