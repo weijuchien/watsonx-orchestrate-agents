@@ -1,0 +1,6 @@
+# Watsonx Orchestrate agents, flows, and tools
+# Python >=3.11 required for ibm-watsonx-orchestrate
+
+ibm-watsonx-orchestrate>=2.0,<3
+pydantic>=2.0
+requests>=2.28

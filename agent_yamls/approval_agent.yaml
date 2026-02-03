@@ -1,9 +1,9 @@
 kind: native
 name: Approval_Coordinator_Agent_3623jL
 display_name: Approval Coordinator Agent
-description: 'An agent to send an approval email with structured risk summary.
+description: "An agent to send an approval email with structured risk summary.
 
-  '
+  "
 context_access_enabled: true
 context_variables: []
 restrictions: editable
@@ -56,27 +56,30 @@ instructions: |-
   You must display the content EXACTLY VERBATIM.
   Do NOT rewrite or add content.
 guidelines:
-- display_name: Prevent Self-Approval
-  condition: 'The user sets the ''approver_name'' or ''approver_email'' to be the
-    same as the ''researcher_name'' or the user themselves.
+  - display_name: Prevent Self-Approval
+    condition: "The user sets the 'approver_name' or 'approver_email' to be the
+      same as the 'researcher_name' or the user themselves.
 
-    '
-  action: Politely refuse the request. Explain that according to governance policy,
-    a researcher cannot approve their own project. Ask for a different approver.
-  tool: ''
-- display_name: Validate Risk Summary
-  condition: The user provides a 'risk_summary' or 'approver_brief' that is extremely
-    short (e.g., less than 5 words) or clearly meaningless (e.g., "test", "n/a", "none").
-  action: 'Do not call the tool. Inform the user that a detailed risk summary is required
-    for audit purposes and ask them to copy the full summary generated from the AI
-    drafting stage.
+      "
+    action:
+      Politely refuse the request. Explain that according to governance policy,
+      a researcher cannot approve their own project. Ask for a different approver.
+    tool: ""
+  - display_name: Validate Risk Summary
+    condition:
+      The user provides a 'risk_summary' or 'approver_brief' that is extremely
+      short (e.g., less than 5 words) or clearly meaningless (e.g., "test", "n/a", "none").
+    action:
+      "Do not call the tool. Inform the user that a detailed risk summary is required
+      for audit purposes and ask them to copy the full summary generated from the AI
+      drafting stage.
 
-    '
-  tool: ''
+      "
+    tool: ""
 collaborators: []
 tools:
-- Send_Approval_Request_Email_4625zP
-- hello_user
+  - Send_Approval_Request_Email_4625zP
+  - hello_user
 plugins:
   agent_pre_invoke: []
   agent_post_invoke: []
@@ -90,12 +93,14 @@ chat_with_docs:
     limit: 10
     extraction_strategy: express
   generation:
-    prompt_instruction: ''
+    prompt_instruction: ""
     max_docs_passed_to_llm: 5
     generated_response_length: Moderate
-    display_text_no_results_found: I searched my knowledge base, but did not find
+    display_text_no_results_found:
+      I searched my knowledge base, but did not find
       anything related to your query
-    display_text_connectivity_issue: I might have information related to your query
+    display_text_connectivity_issue:
+      I might have information related to your query
       to share, but am unable to connect to my knowledge base at the moment
     idk_message: I'm afraid I don't understand. Please rephrase your question.
     enabled: false
@@ -116,11 +121,11 @@ chat_with_docs:
 starter_prompts:
   is_default_prompts: false
   prompts:
-  - id: default0
-    title: I want to submit a new AI project for approval.
-    subtitle: ''
-    prompt: I want to submit a new AI project for approval.
-    state: active
+    - id: default0
+      title: I want to submit a new AI project for approval.
+      subtitle: ""
+      prompt: I want to submit a new AI project for approval.
+      state: active
 welcome_content:
   welcome_message: Hello, I am the Approval Coordinator Agent.
   description: Accuracy of generated answers may vary. Please double-check responses.

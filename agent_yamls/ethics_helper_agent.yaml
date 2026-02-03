@@ -32,6 +32,12 @@ instructions: |
   any of the above outputs.
 
   ------------------------------------------------------------------
+  **STEP 0: INPUT SHAPE (WHEN INVOKED FROM FLOW)**
+  When invoked from research_intake_pipeline flow, you may receive an object with keys "flat" and "intake".
+  In that case, use only the "flat" object for intake confirmation and for the ethics_pathway tool.
+  If your input has no "flat" key, treat the whole input as the flat params.
+
+  ------------------------------------------------------------------
   **STEP 1: INTAKE CONFIRMATION**
   Confirm that the following intake elements have been collected
   and are type-correct (not null):

@@ -1,0 +1,79 @@
+[
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"clinical\", \"survey\"], \"human_participants\": {\"involves_humans\": true}}, \"project\": {\"title\": \"ICU Outcomes Study\"}}  What is the appropriate data classification?",
+        "correct_answer": "Confidential",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"employee_records\"], \"fields\": [\"name\", \"salary\", \"performance_review\"], \"human_participants\": {\"involves_humans\": true}}, \"project\": {\"title\": \"HR Annual Reviews\"}}  What is the appropriate data classification?",
+        "correct_answer": "Confidential",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"press_release\"], \"human_participants\": {\"involves_humans\": false}}, \"project\": {\"title\": \"Annual Research Highlights\"}}  What is the appropriate data classification?",
+        "correct_answer": "Public",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"de-identified health information\"], \"human_participants\": {\"involves_humans\": true}}, \"project\": {\"title\": \"ICU Outcomes Study\"}}  What is the appropriate data classification?",
+        "correct_answer": "Public",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"research_health\"], \"fields\": [\"diagnosis\", \"treatment\"], \"human_participants\": {\"involves_humans\": true}, \"identifiability\": \"identifiable\"}, \"project\": {\"title\": \"ICU Outcomes Study\"}}  What is the appropriate data classification?",
+        "correct_answer": "Restricted Use",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "Input JSON: {\"data\": {\"data_types\": [\"login_credentials\"], \"fields\": [\"username\", \"password\"], \"human_participants\": {\"involves_humans\": false}}, \"project\": {\"title\": \"System Access Data\"}}  What is the appropriate data classification?",
+        "correct_answer": "Restricted Use",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "A research dataset is initially classified as Confidential. If it is updated to include Social Security Numbers, what should its classification be?",
+        "correct_answer": "Restricted Use",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "If a dataset is expanded to include biometric data used for authentication (e.g., fingerprint scans), how should its classification be updated?",
+        "correct_answer": "Restricted Use",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "A report was initially marked Confidential. After it is officially published on the public website, what does its classification become?",
+        "correct_answer": "Public",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "A list of scholarship applicants' personal contact information will only be used internally within the organisation. Should this information be classified as Internal or Confidential?",
+        "correct_answer": "Confidential",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    },
+    {
+        "question": "If a dataset is under a contractual confidentiality agreement but also contains data that laws require to be treated with the highest level of protection, which classification should apply?",
+        "correct_answer": "Restricted Use",
+        "correct_answer_document_ids": [
+            "Data Classification Policy.pdf"
+        ]
+    }
+]
