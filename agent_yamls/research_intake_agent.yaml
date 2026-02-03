@@ -2,7 +2,6 @@ spec_version: v1
 style: default
 name: Research_Intake_Agent_5849K7
 display_name: Research Intake Agent
-llm: watsonx/meta-llama/llama-3-2-90b-vision-instruct
 
 description: |
   This agent is the front-door Research Intake Agent for "University Research Ethics & AI Advising".
