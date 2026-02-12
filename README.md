@@ -14,69 +14,8 @@ This guide covers:
 The Research Intake Agent is the single entry point for researchers. It does **not** make ethics or governance decisions itself. It:
 
 1. **Collects** a structured intake payload (nested JSON: `meta`, `project`, `researcher`, `approver`, `ai`, `data`, `external_collaborators`) with required fields and allowed defaults.
-Example:
-{
-  "meta": {
-    "request_id": "req-2026-001",
-    "created_at": "2026-01-28T03:10:00Z",
-    "updated_at": "2026-01-28T03:10:00Z"
-  },
-  "project": {
-    "stage": "proposal",
-    "title": "AI-Assisted Early Risk Detection for Clinical Research",
-    "domain": "healthcare",
-    "purpose": "research",
-    "summary": "This project investigates using AI to generate explainable, non-automated risk indicators for research teams based on de-identified structured clinical data."
-  },
-  "researcher": {
-    "researcher_name": "Vita Chien",
-    "researcher_email": "vita.chien@example.edu.au",
-    "researcher_affiliation": {
-      "institution": "The University of Melbourne",
-      "school_faculty": "School of Computing and Information Systems"
-    }
-  },
-  "approver": {
-    "approver_name": "Dr. Alex Morgan",
-    "approver_email": "alex.morgan@example.edu.au",
-    "approver_affiliation": {
-      "approver_institution": "The University of Melbourne",
-      "approver_school_faculty": "Faculty of Engineering and Information Technology"
-    }
-  },
-  "ai": {
-    "usage": {
-      "ai_usage_type": "decision_support",
-      "decision_support": "yes",
-      "external_model_used": true,
-      "external_model_details": {
-        "model": "GPT-4",
-        "provider": "OpenAI",
-        "service": "Cloud-hosted large language model API"
-      }
-    }
-  },
-  "data": {
-    "vendor": "university_cluster",
-    "data_types": ["medical_records", "demographic", "other"],
-    "human_participants": {
-      "involves_humans": true,
-      "data_details": ["patients"]
-    },
-    "sensitivity": {
-      "level": "medium",
-      "rationale": "Contains de-identified health-related information; residual re-identification risk exists if combined with other datasets."
-    },
-    "storage": {
-      "approved_storage": false,
-      "location": "University-managed secure research cloud environment"
-    }
-  },
-  "external_collaborators": {
-    "has_external_collaborators": false,
-    "collaborators": []
-  }
-}
+Please check [inputs/example.json](inputs/example.json) as an example.
+
 2. **Validates** that no required field is null or missing before proceeding.
 3. **Orchestrates** downstream work in **Pipeline**: Runs the **research_intake_pipeline** flow, which runs `flatten_params` → **Ethics Helper Agent** → **Data Management Agent** in a fixed sequence and returns both outputs.
 
@@ -87,6 +26,25 @@ The same auditable payload is passed through all sub-agents so that ethics routi
 ## Pipeline Flow: `research_intake_pipeline`
 
 When the Research Intake Agent runs the **research_intake_pipeline** tool (flow), the sequence is:
+
+```mermaid
+flowchart TD
+    A[Project Submission] --> B[Research Intake Agent<br/>Collect + Validate Payload]
+    B --> C[research_intake_pipeline]
+    C --> D[flatten_params]
+    D --> E[Ethics Helper Agent<br/>ethics_pathway]
+    E --> F[Data Management Agent<br/>evaluate_risk]
+
+    F --> G{requires_approval?}
+    G -->|Yes| H[Storage Compliance Agent<br/>evaluate_storage_location]
+    G -->|No| I{requires_review?}
+    I -->|Yes| J[Manual Review Notice]
+    I -->|No| K[generate_data_plan]
+
+    H --> Z[Final Governance Output]
+    J --> Z
+    K --> Z
+```
 
 | Step | Component | Role |
 |------|------------|------|
@@ -108,6 +66,7 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
   - If any required schema field is missing or null → ask the user for that field (by section: project, researcher, approver, AI, data, collaborators, meta); apply allowed defaults for arrays and external model details only.
   - If `data.human_participants.involves_humans` is true and `data.human_participants.data_details` is empty → ask for participant categories (e.g. students, patients, staff, public) and set `data_details`.
   - Only when the full nested payload is valid → serialize it to a JSON string and either run **research_intake_pipeline** or call **Ethics Helper Agent** then **Data Management Agent** with that string in `message`.
+  - Original design note: this agent was planned to also orchestrate **Approval Agent** in the same flow. It is currently deferred because third-party send ticket/email services are not integrated yet.
   - After both ethics and data-management results are back → return **ETHICS_OUTPUT** then **DATA_MGMT_OUTPUT** verbatim; no merging or rewriting.
 - **Tools:** `research_intake_pipeline` (flow).
 - **Collaborators:** Ethics Helper Agent, Data Management Agent (invoked via collaborator tools with strict `message` = raw JSON string).
@@ -151,6 +110,19 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
   - **Step 1 – Tool:** Call **evaluate_storage_location** once with the full composite JSON as `context`.
   - **Step 2 – Output:** Produce a Markdown report with: *Storage Compliance Status* (project title, current location, approved/not approved), *Approved Storage Locations* (from `location_matrix`), and *Guidance Message* using the tool’s message semantics (approved vs not approved). No JSON or code blocks in the reply.
 - **Tools:** `evaluate_storage_location`.
+
+---
+
+### 5. Approval Agent (`approval_agent.yaml`)
+
+- **Role:** Coordinate governance approval request submission and send approval emails after complete inputs are provided. It does not make approval decisions.
+- **Decision logic:**
+  - **Step 0 - Identity first:** At conversation start, require user name. If missing, ask for it and stop. When name is provided, call `hello_user` and use the tool output as the greeting.
+  - **Step 1 - Required fields:** Collect and confirm all 6 required values before tool execution: `project_title`, `researcher_name`, `approver_name`, `approver_email`, `approver_brief`, `risk_summary`.
+  - **Step 2 - Validation gates:** Do not assume critical values. Reject self-approval (approver cannot be the researcher). Validate email format. If `approver_brief` or `risk_summary` is too short or meaningless, ask for a detailed version and stop.
+  - **Step 3 - Tool execution:** Only after all required fields pass validation, call `SendApprovalRequestEmail`.
+  - **Step 4 - Output rule:** Return the approval tool response verbatim with no rewriting.
+- **Tools:** `SendApprovalRequestEmail`, `hello_user`.
 
 ---
 
@@ -252,10 +224,10 @@ Use the CLI to move agent definitions between your watsonx Orchestrate environme
 Import an agent definition from a YAML file into the active environment:
 
 ```bash
-orchestrate agents import -f agent_yamls/main_agent.yaml
+orchestrate agents import -f agents/main_agent.yaml
 ```
 
-- `-f` / `--file`: Path to the agent YAML file (e.g. `agent_yamls/main_agent.yaml`).
+- `-f` / `--file`: Path to the agent YAML file (e.g. `agents/main_agent.yaml`).
 
 ### 3.2 Export an agent to YAML
 
@@ -274,14 +246,22 @@ To find an agent’s name or ID, use the Agents list in the watsonx Orchestrate 
 
 ---
 
+## Known Issues
+![Known issue: generate_data_plan project title fallback](images/known-issues/data_mgmt_issue.png)
+- `generate_data_plan.py` may fail to read the correct project title (falling back to `Unknown Project` in some runs).
+- Current suspicion is that `agents/data_management_agent.yaml` input is being altered/truncated before it is passed to `generate_data_plan`.
+- This has been investigated with multiple fixes attempted, but the root cause has not been fully resolved yet.
+
+---
+
 ## Project layout (agents & tools)
 
 | Path | Description |
 |------|-------------|
-| `agent_yamls/research_intake_agent.yaml` | Front-door Research Intake Agent; uses flow + collaborators. |
-| `agent_yamls/ethics_helper_agent.yaml` | Ethics Helper Agent; calls `ethics_pathway`. |
-| `agent_yamls/data_management_agent.yaml` | Data Management Agent; calls `evaluate_risk`, `generate_data_plan`; delegates to Storage Compliance. |
-| `agent_yamls/storage_compliance_agent.yaml` | Storage Compliance Agent; calls `evaluate_storage_location`. |
+| `agents/research_intake_agent.yaml` | Front-door Research Intake Agent; uses flow + collaborators. |
+| `agents/ethics_helper_agent.yaml` | Ethics Helper Agent; calls `ethics_pathway`. |
+| `agents/data_management_agent.yaml` | Data Management Agent; calls `evaluate_risk`, `generate_data_plan`; delegates to Storage Compliance. |
+| `agents/storage_compliance_agent.yaml` | Storage Compliance Agent; calls `evaluate_storage_location`. |
 | `flows/research_intake_pipeline_flow.py` | Flow definition: flatten_params → ethics_helper → data_management. |
 | `tools/flatten_params.py` | Flattens nested intake for ethics_pathway. |
 | `tools/ethics_pathway.py` | Ethics routing, risk, checklist, optional ticket. |
@@ -292,4 +272,3 @@ To find an agent’s name or ID, use the Agents list in the watsonx Orchestrate 
 ---
 
 **Reference:** [Configure access to remote environments](https://developer.watson-orchestrate.ibm.com/)
-

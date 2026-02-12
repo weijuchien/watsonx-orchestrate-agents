@@ -1,6 +1,45 @@
 from ibm_watsonx_orchestrate.agent_builder.tools import tool
 
 
+def _resolve_intake_context(context) -> dict:
+    """
+    Normalize any wrapped payload to the canonical intake object with
+    top-level keys: data, project, researcher, external_collaborators.
+
+    Handles all known wrapping scenarios from the watsonx Orchestrate framework:
+      1. JSON string → parse first
+      2. Already correct (has "data" + "project" at top) → use as-is
+      3. Wrapped in "intake" key (from flatten_params) → unwrap
+      4. Wrapped in "context" key (framework passes entire args object) → unwrap
+      5. Otherwise → return as-is
+    """
+    import json as _json
+
+    # Handle string input (JSON serialized)
+    if isinstance(context, str):
+        try:
+            context = _json.loads(context)
+        except (ValueError, TypeError):
+            return {}
+
+    if not isinstance(context, dict):
+        return {}
+
+    # Already has expected top-level keys — use directly
+    if "data" in context and "project" in context:
+        return context
+
+    # Wrapped in "intake" key (from flatten_params output)
+    if isinstance(context.get("intake"), dict):
+        return context["intake"]
+
+    # Wrapped in "context" key (framework may pass entire args object as context param)
+    if isinstance(context.get("context"), dict):
+        return context["context"]
+
+    return context
+
+
 def _norm_str(v, default: str) -> str:
     if v is None:
         return default
@@ -14,6 +53,7 @@ def _needs_manual_review(context: dict, classification_tag: str) -> bool:
     In your pipeline, the authoritative decision should come from evaluate_risk.
     This heuristic is only used when generate_data_plan is called standalone.
     """
+    context = _resolve_intake_context(context)
     data = context.get("data", {}) or {}
     ext = context.get("external_collaborators", {}) or {}
     sensitivity = (data.get("sensitivity", {}) or {}).get("level", "")
@@ -55,6 +95,8 @@ def generate_data_plan(
           - manual_review_required, manual_review_reason
           - user_message (READY-TO-PRINT, verbatim)
     """
+
+    context = _resolve_intake_context(context)
 
     # Extract nested fields safely
     data = context.get("data", {}) or {}

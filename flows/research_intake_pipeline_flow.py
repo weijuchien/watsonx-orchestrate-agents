@@ -104,11 +104,12 @@ class IntakePayload(BaseModel):
 class FlowOutput(BaseModel):
     ethics_output: Dict[str, Any] = Field(description="Raw JSON output returned by ethics_pathway")
     data_mgmt_output: Any = Field(description="Raw output returned by data_management_agent")
+    approval_output: Any = Field(description="Raw output returned by approval_agent")
 
 
 @flow(
     name="research_intake_pipeline",
-    description="Fixed pipeline: flatten intake -> ethics_pathway -> data_management_agent -> return both outputs verbatim",  # noqa: E501
+    description="Fixed pipeline: flatten intake -> ethics_pathway -> data_management_agent -> approval_agent -> return outputs verbatim",  # noqa: E501
     input_schema=IntakePayload,
     output_schema=FlowOutput,
 )
@@ -136,15 +137,36 @@ def build_research_intake_pipeline(aflow: Flow) -> Flow:
         name="data_management_node",
         agent="data_management_agent",
         description="Assess data handling and storage compliance requirements",
-        message="Use the provided intake payload to assess data governance requirements.",
+        message=(
+            "You are invoked from research_intake_pipeline flow. "
+            "Extract the FULL intake from flow context (flatten_params_node output). "
+            "It has 7 keys: meta, project, researcher, approver, ai, data, external_collaborators. "
+            "Save this as CTX. Pass CTX (all 7 keys, unchanged) to EVERY tool call. "
+            "Do NOT drop project or researcher. Do NOT reconstruct the object between calls."
+        ),
     )
 
-    # Lock sequence: START -> flatten -> ethics -> data_mgmt -> END
+    # 4. Approval Coordinator Agent
+    approval_node = aflow.agent(
+        name="approval_node",
+        agent="approval_agent",
+        description="Generate approval report and optionally dispatch approval email",
+        message=(
+            "You are invoked from research_intake_pipeline flow. "
+            "The full intake payload is in the flow context from flatten_params_node output "
+            "(keys: meta, project, researcher, approver, ai, data, external_collaborators). "
+            "Use all available context from prior nodes to generate an approval report. "
+            "Do not request additional user input."
+        ),
+    )
+
+    # Lock sequence: START -> flatten -> ethics -> data_mgmt -> approval -> END
     aflow.sequence(
         START,
         flatten_node,
         ethics_agent_node,   # ← ethics FIRST
         data_mgmt_node,      # ← data mgmt SECOND
+        approval_node,       # ← approval THIRD
         END,
     )
 
