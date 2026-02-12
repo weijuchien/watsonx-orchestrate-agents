@@ -229,6 +229,13 @@ orchestrate agents import -f agents/main_agent.yaml
 
 - `-f` / `--file`: Path to the agent YAML file (e.g. `agents/main_agent.yaml`).
 
+You can also import tools and flows from Python files:
+
+```bash
+orchestrate tools import -k python -f tools/generate_data_plan.py
+orchestrate tools import -k flow -f flows/research_intake_pipeline_flow.py
+```
+
 ### 3.2 Export an agent to YAML
 
 Export an existing agent from the environment to a local YAML file:
