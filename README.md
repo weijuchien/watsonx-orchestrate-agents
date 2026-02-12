@@ -59,7 +59,7 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
 
 ## Agent Decision Logic
 
-### 1. Research Intake Agent (`research_intake_agent.yaml`)
+### 1. Research Intake Agent ([research_intake_agent.yaml](agents/research_intake_agent.yaml))
 
 - **Role:** Front-door orchestration only. Collects and validates intake; does not assess ethics or risk.
 - **Decision logic:**
@@ -73,7 +73,7 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
 
 ---
 
-### 2. Ethics Helper Agent (`ethics_helper_agent.yaml`)
+### 2. Ethics Helper Agent ([ethics_helper_agent.yaml](agents/ethics_helper_agent.yaml))
 
 - **Role:** Orchestrate ethics pathway guidance and checklist; never approve or certify ethics.
 - **Decision logic:**
@@ -86,7 +86,7 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
 
 ---
 
-### 3. Data Management Agent (`data_management_agent.yaml`)
+### 3. Data Management Agent ([data_management_agent.yaml](agents/data_management_agent.yaml))
 
 - **Role:** Evaluate data governance risk and storage; optionally delegate to Storage Compliance; generate a data plan when allowed. Does not approve anything.
 - **Decision logic:**
@@ -102,7 +102,7 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
 
 ---
 
-### 4. Storage Compliance Agent (`storage_compliance_agent.yaml`)
+### 4. Storage Compliance Agent ([storage_compliance_agent.yaml](agents/storage_compliance_agent.yaml))
 
 - **Role:** Validate whether the proposed storage location is approved; provide guidance only, no approvals.
 - **Decision logic:**
@@ -113,16 +113,15 @@ So the Research Intake Agent fulfils the guide by: *collecting structured intake
 
 ---
 
-### 5. Approval Agent (`approval_agent.yaml`)
+### 5. Approval Agent ([approval_agent.yaml](agents/approval_agent.yaml))
 
 - **Role:** Coordinate governance approval request submission and send approval emails after complete inputs are provided. It does not make approval decisions.
 - **Decision logic:**
-  - **Step 0 - Identity first:** At conversation start, require user name. If missing, ask for it and stop. When name is provided, call `hello_user` and use the tool output as the greeting.
   - **Step 1 - Required fields:** Collect and confirm all 6 required values before tool execution: `project_title`, `researcher_name`, `approver_name`, `approver_email`, `approver_brief`, `risk_summary`.
   - **Step 2 - Validation gates:** Do not assume critical values. Reject self-approval (approver cannot be the researcher). Validate email format. If `approver_brief` or `risk_summary` is too short or meaningless, ask for a detailed version and stop.
   - **Step 3 - Tool execution:** Only after all required fields pass validation, call `SendApprovalRequestEmail`.
   - **Step 4 - Output rule:** Return the approval tool response verbatim with no rewriting.
-- **Tools:** `SendApprovalRequestEmail`, `hello_user`.
+- **Tools:** `SendApprovalRequestEmail`.
 
 ---
 
@@ -197,7 +196,7 @@ orchestrate env activate <environment-name>
 orchestrate env activate <environment-name> --api-key <your-api-key>
 ```
 
-> **Note:** Remote environment authentication expires every 2 hours. Run `orchestrate env activate` again after it expires.
+> **Note:** Remote environment authentication expires every 2 hours. Run `orchestrate env activate <environment-name>` again after it expires.
 
 ### 2.3 Check and manage environments
 
@@ -224,10 +223,10 @@ Use the CLI to move agent definitions between your watsonx Orchestrate environme
 Import an agent definition from a YAML file into the active environment:
 
 ```bash
-orchestrate agents import -f agents/main_agent.yaml
+orchestrate agents import -f agents/research_intake_agent.yaml
 ```
 
-- `-f` / `--file`: Path to the agent YAML file (e.g. `agents/main_agent.yaml`).
+- `-f` / `--file`: Path to the agent YAML file (e.g. [`agents/research_intake_agent.yaml`](agents/research_intake_agent.yaml)).
 
 You can also import tools and flows from Python files:
 
@@ -255,8 +254,8 @@ To find an agent’s name or ID, use the Agents list in the watsonx Orchestrate 
 
 ## Known Issues
 ![Known issue: generate_data_plan project title fallback](images/known-issues/data_mgmt_issue.png)
-- `generate_data_plan.py` may fail to read the correct project title (falling back to `Unknown Project` in some runs).
-- Current suspicion is that `agents/data_management_agent.yaml` input is being altered/truncated before it is passed to `generate_data_plan`.
+- [`generate_data_plan.py`](tools/generate_data_plan.py) may fail to read the correct project title (falling back to `Unknown Project` in some runs).
+- Current suspicion is that [`agents/data_management_agent.yaml`](agents/data_management_agent.yaml) input is being altered/truncated before it is passed to [`generate_data_plan.py`](tools/generate_data_plan.py).
 - This has been investigated with multiple fixes attempted, but the root cause has not been fully resolved yet.
 
 ---
@@ -265,16 +264,16 @@ To find an agent’s name or ID, use the Agents list in the watsonx Orchestrate 
 
 | Path | Description |
 |------|-------------|
-| `agents/research_intake_agent.yaml` | Front-door Research Intake Agent; uses flow + collaborators. |
-| `agents/ethics_helper_agent.yaml` | Ethics Helper Agent; calls `ethics_pathway`. |
-| `agents/data_management_agent.yaml` | Data Management Agent; calls `evaluate_risk`, `generate_data_plan`; delegates to Storage Compliance. |
-| `agents/storage_compliance_agent.yaml` | Storage Compliance Agent; calls `evaluate_storage_location`. |
-| `flows/research_intake_pipeline_flow.py` | Flow definition: flatten_params → ethics_helper → data_management. |
-| `tools/flatten_params.py` | Flattens nested intake for ethics_pathway. |
-| `tools/ethics_pathway.py` | Ethics routing, risk, checklist, optional ticket. |
-| `tools/evaluate_risk.py` | Governance risk and classification. |
-| `tools/evaluate_storage_location.py` | Storage approval vs policy matrix. |
-| `tools/generate_data_plan.py` | Data management plan and retention guidance. |
+| [`agents/research_intake_agent.yaml`](agents/research_intake_agent.yaml) | Front-door Research Intake Agent; uses flow + collaborators. |
+| [`agents/ethics_helper_agent.yaml`](agents/ethics_helper_agent.yaml) | Ethics Helper Agent; calls `ethics_pathway`. |
+| [`agents/data_management_agent.yaml`](agents/data_management_agent.yaml) | Data Management Agent; calls `evaluate_risk`, `generate_data_plan`; delegates to Storage Compliance. |
+| [`agents/storage_compliance_agent.yaml`](agents/storage_compliance_agent.yaml) | Storage Compliance Agent; calls `evaluate_storage_location`. |
+| [`flows/research_intake_pipeline_flow.py`](flows/research_intake_pipeline_flow.py) | Flow definition: flatten_params → ethics_helper → data_management. |
+| [`tools/flatten_params.py`](tools/flatten_params.py) | Flattens nested intake for ethics_pathway. |
+| [`tools/ethics_pathway.py`](tools/ethics_pathway.py) | Ethics routing, risk, checklist, optional ticket. |
+| [`tools/evaluate_risk.py`](tools/evaluate_risk.py) | Governance risk and classification. |
+| [`tools/evaluate_storage_location.py`](tools/evaluate_storage_location.py) | Storage approval vs policy matrix. |
+| [`tools/generate_data_plan.py`](tools/generate_data_plan.py) | Data management plan and retention guidance. |
 
 ---
 
